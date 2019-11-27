@@ -24,10 +24,10 @@ or video playback.
 *Straightforward means boring...*
 
 I've always been fascinated by the operating systems of network
-devices such as router.
+devices such as routers.
 Their sturdy filesystem let you unplug the power at any time
 without any damage. If for some reason the configuration gets
-corruptet you can simply reset the device to restore the
+corrupted you can simply reset the device to restore the
 *factory parameters* and you are again good to go.
 
 **How to achieve this?**
@@ -36,7 +36,7 @@ In one word: *overlaying*
 
 The root filesystem is made of the union of two or more filesystems
 (or more in general folders). We will call those filesystem **layers**.
-One layer is made **read only** and contains a basic linux installation.
+One layer is made **read only** and it contains a basic linux installation.
 A full root scheleton with all the binaries, config files and libraries.
 This by itself works and makes the device boot.
 All the customization are stored in another **read write** layer.
@@ -72,3 +72,19 @@ but rather it uses **Buildroot** to assemble an entire custom
 operating system by picking up by hand EVERYTHING. Starting from
 the toolchain for the cross compilation to the way to assemble
 the root filesystem scheleton.
+
+## Milestones
+
+This project is developed with some milestone in mind.
+
+1. Basic GNU/Linux OS made starting from the default configuration
+   of Buildroot
+2. GNU/Linux OS with the basic routing configuration (DHCP, Wireless
+   access point)
+3. Same image as previous step, but with tools to customize the
+   configuration at runtime
+4. Filesystem overlaying to make the changes appear only on the
+   upper overlay RW filesystem
+5. (Optional) basic driver for external GPIO interface to perform
+   some basic operations such as reboot, factory reset, Wireless
+   ON/OFF
