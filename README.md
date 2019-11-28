@@ -159,6 +159,8 @@ SD card.
 The easiest way to get it is to copy the content of sdcard.img
 directly into the block device of the microSD.
 An example is this:
+
 `dd if=raspi4_build/images/sdcard.img of=/dev/sdd bs=2M`
+
 To run as root (or with sudo).
 In this case the SD card is mapped to the /dev/sdd device.
