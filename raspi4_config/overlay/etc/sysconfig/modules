@@ -1,0 +1,13 @@
+# List of kernel modules to load at boot time
+# Modules are loaded in the order they appear
+
+# Atheros USB Wireless card
+ath9k
+ath9k_htc
+
+# Boardcom internal Wireless card
+brcmfmac
+
+# USB-C as USB Ethernet device
+dwc2
+g_ether
