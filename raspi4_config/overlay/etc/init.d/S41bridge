@@ -1,0 +1,79 @@
+#!/bin/sh
+
+##########################################################################
+#                                                                        #
+#                 *************************************                  #
+#                 * Copyright 2019 Federico Cosentino *                  #
+#                 *************************************                  #
+#                                                                        #
+# This program is free software: you can redistribute it and/or modify   #
+# it under the terms of the GNU General Public License as published by   #
+# the Free Software Foundation, either version 3 of the License, or      #
+# (at your option) any later version.                                    #
+#                                                                        #
+# This program is distributed in the hope that it will be useful,        #
+# but WITHOUT ANY WARRANTY; without even the implied warranty of         #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          #
+# GNU General Public License for more details.                           #
+#                                                                        #
+# You should have received a copy of the GNU General Public License      #
+# along with this program.  If not, see <https://www.gnu.org/licenses/>. #
+#                                                                        #
+##########################################################################
+
+dev="br0"
+address="10.0.1.1/24"
+broadcast="10.0.1.255"
+gateway="10.0.1.1"
+
+start() {
+	printf "Create the bridge $dev: "
+	# Create the bridge
+	/usr/sbin/brctl addbr $dev
+	/usr/sbin/brctl addif $dev eth0 usb0 # wlan0 is added by hostapd
+	# Configure the bridge
+	/sbin/ip addr add $address broadcast $broadcast dev $dev label $dev
+	# Bring up the interfaces
+	/sbin/ip link set eth0 up
+	/sbin/ip link set usb0 up
+	/sbin/ip link set $dev up
+	# Set the default route
+	/sbin/ip route add default via $gateway dev $dev
+	echo "OK"
+}
+stop() {
+	printf "Delete the bridge $dev: "
+	# Delete the default route
+	/sbin/ip route del default via $gateway dev $dev
+	# Bring down the interfaces
+	/sbin/ip link set $dev down
+	/sbin/ip link set usb0 down
+	/sbin/ip link set eth0 down
+	# Delete the configuration of the bridge
+	/sbin/ip addr del $address broadcast $broadcast dev $dev label $dev
+	# Destroy the bridge
+	/usr/sbin/brctl delif $dev eth0 usb0
+	/usr/sbin/brctl delbr $dev
+	echo "OK"
+}
+restart() {
+	stop
+	start
+}
+
+case "$1" in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	restart|reload)
+		restart
+		;;
+	*)
+		echo "Usage: $0 {start|stop|restart}"
+		exit 1
+esac
+
+exit $?

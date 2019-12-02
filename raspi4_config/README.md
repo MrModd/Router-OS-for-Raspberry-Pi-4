@@ -14,10 +14,10 @@ in an .img file.
 - overlay/: this folder contains the files copied in the root filesystem
   before packing everything in the .img file. This folder is merged with
   the root filesystem folder, so the files in it must respect the same
-  folder structure of the root filesystem
+  folder structure of the root filesystem.
 - device_table.txt: this file contains the description of the files and
   folders permissions inside overlay/. A chmod to the parameters described
-  here is applied when mergin overlay/ with the root filesystem
+  here is applied when mergin overlay/ with the root filesystem.
 - add_rpi_custom_config.sh: this script overwrite the file
   raspi4_build/images/rpi-firmware/config.xml.
   This is the configuration file used by the Raspberry CPU to configure the
@@ -27,6 +27,8 @@ in an .img file.
   is selected in Buildroot under "Target packages" --> "Hardware handling"
   --> "Firmware". If yes try rebuilding the package with the command
   `./compile_buildroot.sh rpi-firmware-rebuild`.
+- user_table.txt: this file describes the users to be created in the
+  system.
 
 # How I solved the problems
 
