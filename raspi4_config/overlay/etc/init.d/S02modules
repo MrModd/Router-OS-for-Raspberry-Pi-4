@@ -62,6 +62,10 @@ case "${1}" in
             echo_failure
         fi
         ;;
+    stop)
+        # No need to unload the modules before halting the system
+        true # Do nothing
+        ;;
     *)
         echo "Usage: ${0} {start}"
         exit 1

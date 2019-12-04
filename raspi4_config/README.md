@@ -51,7 +51,7 @@ computer and looking at the new modules that popped out in lsmod.
 
 ## USB-C as Ethernet device
 
-The USB-C port, normali used as power input for the Raspberry can be used
+The USB-C port, normally used as power input for the Raspberry, can be used
 as another network device. The idea came from this
 [YouTube](https://www.youtube.com/watch?v=IR6sDcKo3V8) video.
 
@@ -68,9 +68,9 @@ was suggested by
 [this](https://unix.stackexchange.com/questions/396542/buildroot-how-to-load-modules-automatically)
 post.
 
-It relies to a a couple of scripts taken from the "Linux From Scratch" project.
+It relies to a couple of scripts taken from the "Linux From Scratch" project.
 The files used on this project to load the modules are not my property and
-they belongs to the persons described at the beginning of the files.
+they belong to the persons described at the beginning of the files.
 
 ## Long boot time
 

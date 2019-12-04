@@ -9,6 +9,7 @@
 /etc/dnsmasq.conf				f		644		0		0		-	-	-
 /etc/hostapd.conf				f		644		0		0		-	-	-
 /etc/issue					f		644		0		0		-	-	-
+/etc/ssh/sshd_config				f		644		0		0		-	-	-
 /etc/init.d/S02modules				f		755		0		0		-	-	-
 /etc/init.d/S41bridge				f		755		0		0		-	-	-
 /etc/init.d/S70hostapd				f		755		0		0		-	-	-

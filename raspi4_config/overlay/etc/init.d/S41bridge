@@ -26,34 +26,59 @@ address="10.0.1.1/24"
 broadcast="10.0.1.255"
 gateway="10.0.1.1"
 
+ifaces="eth0 usb0" # wlan0 is added by hostapd
+
+ip="/sbin/ip"
+brctl="/usr/sbin/brctl"
+
 start() {
 	printf "Create the bridge $dev: "
+
 	# Create the bridge
-	/usr/sbin/brctl addbr $dev
-	/usr/sbin/brctl addif $dev eth0 usb0 # wlan0 is added by hostapd
+	$brctl addbr $dev
+
+	# Add the intefaces to the bridge
+	for iface in $ifaces ; do
+		$brctl addif $dev $iface
+	done
+
 	# Configure the bridge
-	/sbin/ip addr add $address broadcast $broadcast dev $dev label $dev
+	$ip addr add $address broadcast $broadcast dev $dev label $dev
+
 	# Bring up the interfaces
-	/sbin/ip link set eth0 up
-	/sbin/ip link set usb0 up
-	/sbin/ip link set $dev up
+	for iface in $ifaces ; do
+		$ip link set $iface up
+	done
+	$ip link set $dev up
+
 	# Set the default route
-	/sbin/ip route add default via $gateway dev $dev
+	$ip route add default via $gateway dev $dev
+
 	echo "OK"
 }
 stop() {
 	printf "Delete the bridge $dev: "
+
 	# Delete the default route
-	/sbin/ip route del default via $gateway dev $dev
+	$ip route del default via $gateway dev $dev
+
 	# Bring down the interfaces
-	/sbin/ip link set $dev down
-	/sbin/ip link set usb0 down
-	/sbin/ip link set eth0 down
+	$ip link set $dev down
+	for iface in $ifaces ; do
+		$ip link set $iface down
+	done
+
 	# Delete the configuration of the bridge
-	/sbin/ip addr del $address broadcast $broadcast dev $dev label $dev
-	# Destroy the bridge
-	/usr/sbin/brctl delif $dev eth0 usb0
-	/usr/sbin/brctl delbr $dev
+	$ip addr del $address broadcast $broadcast dev $dev label $dev
+
+	# Remove the interfaces from the bridge
+	for iface in $ifaces ; do
+		$brctl delif $dev $iface
+	done
+
+	# Delete the bridge
+	$brctl delbr $dev
+
 	echo "OK"
 }
 restart() {
