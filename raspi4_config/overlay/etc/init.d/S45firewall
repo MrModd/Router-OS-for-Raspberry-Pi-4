@@ -1,0 +1,153 @@
+#!/bin/sh
+
+##########################################################################
+#                                                                        #
+#                 *************************************                  #
+#                 * Copyright 2019 Federico Cosentino *                  #
+#                 *************************************                  #
+#                                                                        #
+# This program is free software: you can redistribute it and/or modify   #
+# it under the terms of the GNU General Public License as published by   #
+# the Free Software Foundation, either version 3 of the License, or      #
+# (at your option) any later version.                                    #
+#                                                                        #
+# This program is distributed in the hope that it will be useful,        #
+# but WITHOUT ANY WARRANTY; without even the implied warranty of         #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          #
+# GNU General Public License for more details.                           #
+#                                                                        #
+# You should have received a copy of the GNU General Public License      #
+# along with this program.  If not, see <https://www.gnu.org/licenses/>. #
+#                                                                        #
+##########################################################################
+
+iptables="/usr/sbin/iptables"
+
+ExternalDev=""
+ExternalIP=""
+
+InternalDev="br0"
+InternalNet="10.0.1.1/24"
+
+port_forwardings() {
+	# Web server
+	#$iptables -t nat -A PREROUTING -p tcp -d $ExternalIP --dport 80 -j DNAT --to-destination $DockerIP:80 # Translate addresses
+	#$iptables -t filter -A FORWARD -p tcp -d $DockerIP --dport 80 -j ACCEPT                               # Open port in the firewall
+	#$iptables -t nat -A PREROUTING -p tcp -d $ExternalIP --dport 443 -j DNAT --to-destination $DockerIP:443
+	#$iptables -t filter -A FORWARD -p tcp -d $DockerIP --dport 443 -j ACCEPT
+	# FTP
+	#$iptables -t nat -A PREROUTING -p tcp -d $ExternalIP --dport 20 -j DNAT --to-destination $DockerIP:20
+	#$iptables -t nat -A PREROUTING -p tcp -d $ExternalIP --dport 21 -j DNAT --to-destination $DockerIP:21
+	#$iptables -t nat -A PREROUTING -p tcp -d $ExternalIP --dport 49152 -j DNAT --to-destination $DockerIP:49152
+	#$iptables -t nat -A PREROUTING -p tcp -d $ExternalIP --dport 49153 -j DNAT --to-destination $DockerIP:49153
+	#$iptables -t nat -A PREROUTING -p tcp -d $ExternalIP --dport 49154 -j DNAT --to-destination $DockerIP:49154
+	#$iptables -t nat -A PREROUTING -p tcp -d $ExternalIP --dport 49155 -j DNAT --to-destination $DockerIP:49155
+	#$iptables -t filter -A FORWARD -p tcp -d $DockerIP -m multiport --dports 20,21,49152,49153,49154,49155 -j ACCEPT
+
+	# Other rules
+	# Examples:
+	# Translate addresses
+	#$iptables -t nat -A PREROUTING -p tcp -d $ExternalIP --dport <external port> -j DNAT --to-destination <local ip>:<local port>
+	# Open port in the firewall
+	#$iptables -t filter -A FORWARD -p tcp -d <local ip> --dport <external port> -j ACCEPT
+
+	true # In case this function does not have any command
+}
+
+firewall() {
+	# Disable FORWARD
+	$iptables -t filter -P FORWARD DROP
+	$iptables -t filter -A FORWARD ! -i $InternalDev -m state --state ESTABLISHED,RELATED -j ACCEPT
+	$iptables -t filter -A FORWARD -i $InternalDev -j ACCEPT
+
+	# Disable INPUT
+	$iptables -t filter -P INPUT DROP
+	$iptables -t filter -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
+	$iptables -t filter -A INPUT -p icmp -j ACCEPT
+	
+	# Other rules
+	# Examples:
+	#	$iptables -t filter -A INPUT -p tcp -i $ExternalDev --dport <port> -j ACCEPT
+	#	$iptables -t filter -A INPUT -p tcp -i $ExternalDev -m multiport --dports <port>,<port>,<port> -j ACCEPT
+	#	$iptables -t filter -A INPUT -p udp -i $ExternalDev --dport <port> -j ACCEPT
+
+	true # In case this function does not have any command
+}
+
+nat() {
+	# POSTROUTING
+
+	# SNAT is good for static routing where the external IP is well known
+	#$iptables -t nat -A POSTROUTING -o $ExternalDev -s $InternalNet -j SNAT --to-source $ExternalIP
+
+	# MASQUERADE works with dinamically assigned IPs, but it's slower to compute due to
+	# the fact that the kernel has to find the IP every time
+	#$iptables -t nat -A POSTROUTING -o $ExternalDev -s $InternalNet -j MASQUERADE
+
+	# PREROUTING
+
+	# No need to do it thanks to the IP forwarding
+	# Details here: https://terrywang.net/2016/02/02/new-iptables-gotchas.html
+
+	true # In case this function does not have any command
+}
+
+start() {
+	printf "Setting the firewall rules: "
+
+	# Enable SSH on this system
+	$iptables -t filter -A INPUT -p tcp --dport 22 -j ACCEPT
+	
+	# Load configuration
+	port_forwardings
+	
+	# Enable firewall
+	firewall
+
+	# Enable NAT
+	nat
+
+	echo 1 > /proc/sys/net/ipv4/ip_forward
+
+	echo "OK"
+}
+stop() {
+	printf "Deleting all firewall rules: "
+
+	echo 0 > /proc/sys/net/ipv4/ip_forward
+
+	$iptables -t filter -P FORWARD ACCEPT
+	$iptables -t filter -P INPUT ACCEPT
+
+	$iptables -t nat -F
+	$iptables -t filter -F
+
+	echo "OK"
+}
+restart() {
+	stop
+	start
+}
+
+case "$1" in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	restart|reload)
+		restart
+		;;
+	status)
+		echo -e "\033[1mList of rules on default table (filter):\033[0m"
+		$iptables -L
+		echo -e "\n\033[1mList of rules on nat table:\033[0m"
+		$iptables -L -t nat
+		;;
+	*)
+		echo "Usage: $0 {start|stop|restart|status}"
+		exit 1
+esac
+
+exit $?
