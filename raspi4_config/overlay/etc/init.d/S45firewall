@@ -21,37 +21,58 @@
 #                                                                        #
 ##########################################################################
 
+#############
+# Variables #
+#############
+
 iptables="/usr/sbin/iptables"
+firewall_home="/etc/firewall.d"
+config_main="$firewall_home/config"
+config_forwarding="$firewall_home/ports_forwarding.txt"
+config_firewall="$firewall_home/firewall_rules.txt"
 
-ExternalDev=""
-ExternalIP=""
+# If config is not present exit immediately
+[ -f "$config_main" ] || exit 0
 
-InternalDev="br0"
-InternalNet="10.0.1.1/24"
+#############
+# Functions #
+#############
 
-port_forwardings() {
-	# Web server
-	#$iptables -t nat -A PREROUTING -p tcp -d $ExternalIP --dport 80 -j DNAT --to-destination $DockerIP:80 # Translate addresses
-	#$iptables -t filter -A FORWARD -p tcp -d $DockerIP --dport 80 -j ACCEPT                               # Open port in the firewall
-	#$iptables -t nat -A PREROUTING -p tcp -d $ExternalIP --dport 443 -j DNAT --to-destination $DockerIP:443
-	#$iptables -t filter -A FORWARD -p tcp -d $DockerIP --dport 443 -j ACCEPT
-	# FTP
-	#$iptables -t nat -A PREROUTING -p tcp -d $ExternalIP --dport 20 -j DNAT --to-destination $DockerIP:20
-	#$iptables -t nat -A PREROUTING -p tcp -d $ExternalIP --dport 21 -j DNAT --to-destination $DockerIP:21
-	#$iptables -t nat -A PREROUTING -p tcp -d $ExternalIP --dport 49152 -j DNAT --to-destination $DockerIP:49152
-	#$iptables -t nat -A PREROUTING -p tcp -d $ExternalIP --dport 49153 -j DNAT --to-destination $DockerIP:49153
-	#$iptables -t nat -A PREROUTING -p tcp -d $ExternalIP --dport 49154 -j DNAT --to-destination $DockerIP:49154
-	#$iptables -t nat -A PREROUTING -p tcp -d $ExternalIP --dport 49155 -j DNAT --to-destination $DockerIP:49155
-	#$iptables -t filter -A FORWARD -p tcp -d $DockerIP -m multiport --dports 20,21,49152,49153,49154,49155 -j ACCEPT
+nat() {
+	# Details on how to set a NAT here: https://terrywang.net/2016/02/02/new-iptables-gotchas.html
 
-	# Other rules
-	# Examples:
-	# Translate addresses
-	#$iptables -t nat -A PREROUTING -p tcp -d $ExternalIP --dport <external port> -j DNAT --to-destination <local ip>:<local port>
-	# Open port in the firewall
-	#$iptables -t filter -A FORWARD -p tcp -d <local ip> --dport <external port> -j ACCEPT
+	# POSTROUTING
+	if [ -z "$ExternalIP" ] ; then
+		# MASQUERADE works with dinamically assigned IPs, but it's slower to compute due to
+		# the fact that the kernel has to find the IP every time
+		$iptables -t nat -A POSTROUTING -o $ExternalDev -s $InternalNet -j MASQUERADE
+	else
+		# SNAT is good for static routing where the external IP is well known
+		$iptables -t nat -A POSTROUTING -o $ExternalDev -s $InternalNet -j SNAT --to-source $ExternalIP
+	fi
 
-	true # In case this function does not have any command
+	# PREROUTING
+	# No need to do it thanks to the IP forwarding
+}
+
+ports_forwarding() {
+	[ -f "$config_forwarding" ] || return 0
+
+	while read -r line ; do
+		# Ignore comments and blank lines.
+		case "$line" in
+			""|"#"*) continue ;;
+		esac
+
+		proto=$(echo $line | awk '{print $1}')
+		src_port=$(echo $line | awk '{print $2}')
+		dst_ip=$(echo $line | awk '{print $3}')
+		dst_port=$(echo $line | awk '{print $4}')
+
+		$iptables -t nat -A PREROUTING -p $proto -i $ExternalDev --dport $src_port -j DNAT --to-destination $dst_ip:$dst_port
+		$iptables -t filter -A FORWARD -p $proto -d $dst_ip --dport $src_port -j ACCEPT
+
+	done < "$config_forwarding"
 }
 
 firewall() {
@@ -63,54 +84,70 @@ firewall() {
 	# Disable INPUT
 	$iptables -t filter -P INPUT DROP
 	$iptables -t filter -A INPUT -m state --state ESTABLISHED,RELATED -j ACCEPT
-	$iptables -t filter -A INPUT -p icmp -j ACCEPT
+	if [ x$AllowICMP = xtrue ] ; then
+		$iptables -t filter -A INPUT -p icmp -j ACCEPT
+	fi
 	
 	# Other rules
-	# Examples:
-	#	$iptables -t filter -A INPUT -p tcp -i $ExternalDev --dport <port> -j ACCEPT
-	#	$iptables -t filter -A INPUT -p tcp -i $ExternalDev -m multiport --dports <port>,<port>,<port> -j ACCEPT
-	#	$iptables -t filter -A INPUT -p udp -i $ExternalDev --dport <port> -j ACCEPT
+	[ -f "$config_firewall" ] || return 0
 
-	true # In case this function does not have any command
-}
+	while read -r line ; do
+		# Ignore comments and blank lines.
+		case "$line" in
+			""|"#"*) continue ;;
+		esac
 
-nat() {
-	# POSTROUTING
+		proto=$(echo $line | awk '{print $1}')
+		interface=$(echo $line | awk '{print $2}')
+		port=$(echo $line | awk '{print $3}')
 
-	# SNAT is good for static routing where the external IP is well known
-	#$iptables -t nat -A POSTROUTING -o $ExternalDev -s $InternalNet -j SNAT --to-source $ExternalIP
+		case "$interface" in
+			"internal")
+				$iptables -t filter -A INPUT -p $proto -i $InternalDev --dport $port -j ACCEPT
+				;;
+			"external")
+				$iptables -t filter -A INPUT -p $proto -i $ExternalDev --dport $port -j ACCEPT
+				;;
+			"all")
+				$iptables -t filter -A INPUT -p $proto --dport $port -j ACCEPT
+				;;
+		esac
 
-	# MASQUERADE works with dinamically assigned IPs, but it's slower to compute due to
-	# the fact that the kernel has to find the IP every time
-	#$iptables -t nat -A POSTROUTING -o $ExternalDev -s $InternalNet -j MASQUERADE
-
-	# PREROUTING
-
-	# No need to do it thanks to the IP forwarding
-	# Details here: https://terrywang.net/2016/02/02/new-iptables-gotchas.html
-
-	true # In case this function does not have any command
+	done < "$config_firewall"
 }
 
 start() {
-	printf "Setting the firewall rules: "
+	source "$config_main"
+	if [ $? != 0 ] ; then
+		echo "Error reading the config file $config_main."
+		exit 1
+	fi
+
+	printf "Setting up the firewall: "
+	if [ x$GlobalEnable = xfalse ] ; then
+		echo "Nothing to do."
+		exit 0
+	fi
 
 	# Enable SSH on this system
+	# This rule is mandatory
 	$iptables -t filter -A INPUT -p tcp --dport 22 -j ACCEPT
 	
-	# Load configuration
-	port_forwardings
-	
-	# Enable firewall
-	firewall
+	if [ x$EnableNat = xtrue ] ; then
+		nat # Enable the NAT
+		ports_forwarding # Set the forwarding roles
+	fi
 
-	# Enable NAT
-	nat
+	if [ x$EnableFirewall = xtrue ] ; then
+		# Set custom roles
+		firewall
+	fi
 
 	echo 1 > /proc/sys/net/ipv4/ip_forward
 
 	echo "OK"
 }
+
 stop() {
 	printf "Deleting all firewall rules: "
 
@@ -124,10 +161,15 @@ stop() {
 
 	echo "OK"
 }
+
 restart() {
 	stop
 	start
 }
+
+########
+# MAIN #
+########
 
 case "$1" in
 	start)
@@ -141,9 +183,9 @@ case "$1" in
 		;;
 	status)
 		echo -e "\033[1mList of rules on default table (filter):\033[0m"
-		$iptables -L
+		$iptables -L -v -n
 		echo -e "\n\033[1mList of rules on nat table:\033[0m"
-		$iptables -L -t nat
+		$iptables -L -v -n -t nat
 		;;
 	*)
 		echo "Usage: $0 {start|stop|restart|status}"

@@ -21,84 +21,24 @@
 #                                                                        #
 ##########################################################################
 
-dev="br0"
-address="192.168.1.1/24"
-broadcast="192.168.1.255"
-gateway="192.168.1.1"
+# Global activation of the nat/firewall script
+GlobalEnable=false
 
-ifaces="eth0 usb0" # wlan0 is added by hostapd
+#####################
+# NAT configuration #
+#####################
 
-ip="/sbin/ip"
-brctl="/usr/sbin/brctl"
+EnableNat=false # Enable NAT translation
 
-start() {
-	printf "Create the bridge $dev: "
+ExternalDev="" # Mandatory variable
+ExternalIP="" # If set it uses SNAT as target, it not it uses MASQUERADE
 
-	# Create the bridge
-	$brctl addbr $dev
+InternalDev="br0" # Mandatory variable
+InternalNet="192.168.1.0/24" # Mandatory variable
 
-	# Add the intefaces to the bridge
-	for iface in $ifaces ; do
-		$brctl addif $dev $iface
-	done
+############
+# Firewall #
+############
 
-	# Configure the bridge
-	$ip addr add $address broadcast $broadcast dev $dev label $dev
-
-	# Bring up the interfaces
-	for iface in $ifaces ; do
-		$ip link set $iface up
-	done
-	$ip link set $dev up
-
-	# Set the default route
-	$ip route add default via $gateway dev $dev
-
-	echo "OK"
-}
-stop() {
-	printf "Delete the bridge $dev: "
-
-	# Delete the default route
-	$ip route del default via $gateway dev $dev
-
-	# Bring down the interfaces
-	$ip link set $dev down
-	for iface in $ifaces ; do
-		$ip link set $iface down
-	done
-
-	# Delete the configuration of the bridge
-	$ip addr del $address broadcast $broadcast dev $dev label $dev
-
-	# Remove the interfaces from the bridge
-	for iface in $ifaces ; do
-		$brctl delif $dev $iface
-	done
-
-	# Delete the bridge
-	$brctl delbr $dev
-
-	echo "OK"
-}
-restart() {
-	stop
-	start
-}
-
-case "$1" in
-	start)
-		start
-		;;
-	stop)
-		stop
-		;;
-	restart|reload)
-		restart
-		;;
-	*)
-		echo "Usage: $0 {start|stop|restart}"
-		exit 1
-esac
-
-exit $?
+EnableFirewall=false
+AllowICMP=true

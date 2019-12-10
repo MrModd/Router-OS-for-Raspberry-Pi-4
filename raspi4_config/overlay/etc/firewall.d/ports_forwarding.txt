@@ -1,0 +1,14 @@
+# <Protocol (tcp/udp)> <External port> <Internal IP> <Internal port>
+
+# Examples
+# Web server
+#tcp    80       192.168.1.2    80
+#tcp    443      192.168.1.2    443
+
+# FTP with passive ports
+#tcp    20       192.168.1.3    20
+#tcp    21       192.168.1.3    21
+#tcp    49152    192.168.1.3    49152
+#tcp    49153    192.168.1.3    49153
+#tcp    49154    192.168.1.3    49154
+#tcp    49155    192.168.1.3    49155

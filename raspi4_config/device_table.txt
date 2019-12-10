@@ -12,6 +12,10 @@
 /etc/ssh/sshd_config				f		644		0		0		-	-	-
 /etc/init.d/S02modules				f		755		0		0		-	-	-
 /etc/init.d/S41bridge				f		755		0		0		-	-	-
+/etc/init.d/S45firewall				f		755		0		0		-	-	-
 /etc/init.d/S70hostapd				f		755		0		0		-	-	-
 /etc/sysconfig/functions			f		755		0		0		-	-	-
 /etc/sysconfig/modules				f		644		0		0		-	-	-
+/etc/firewall.d/config				f		755		0		0		-	-	-
+/etc/firewall.d/firewall_rules.txt		f		644		0		0		-	-	-
+/etc/firewall.d/ports_forwarding.txt		f		644		0		0		-	-	-

@@ -1,0 +1,23 @@
+# <Protocol> <Interface (internal/external/all)> <Port>
+# You should use internal or external only when NAT is enabled.
+# In case NAT is not enabled you should use all.
+
+# Examples
+
+# SMTP
+#tcp internal 25
+
+# WHOIS protocol
+#tcp all 43
+
+# DNS server
+#udp internal 53
+
+# DHCP server
+#udp internal 67
+
+# NTP
+#udp external 123
+
+# SMB server
+#tcp internal 445
