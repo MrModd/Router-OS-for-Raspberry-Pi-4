@@ -21,63 +21,60 @@
 #                                                                        #
 ##########################################################################
 
-dev="br0"
-address="192.168.1.1/24"
-broadcast="192.168.1.255"
-gateway="192.168.1.1"
-
-ifaces="eth0 usb0" # wlan0 is added by hostapd
-
 ip="/sbin/ip"
 brctl="/usr/sbin/brctl"
+bridges_list="/etc/net_bridges.txt"
+
+# If config is not present exit immediately
+[ -f "$bridges_list" ] || exit 0
 
 start() {
-	printf "Create the bridge $dev: "
+	printf "Create network bridges: "
 
-	# Create the bridge
-	$brctl addbr $dev
+	while read -r line ; do
+		# Ignore comments and blank lines.
+		case "$line" in
+			""|"#"*) continue ;;
+		esac
 
-	# Add the intefaces to the bridge
-	for iface in $ifaces ; do
-		$brctl addif $dev $iface
-	done
+		bridge=$(echo $line | awk '{print $1}')
+		interfaces=$(echo $line | awk '{for (i=2; i<=NF; i++) printf "%s ", $i; print ""}')
 
-	# Configure the bridge
-	$ip addr add $address broadcast $broadcast dev $dev label $dev
+		# Create the bridge
+		$brctl addbr $bridge
 
-	# Bring up the interfaces
-	for iface in $ifaces ; do
-		$ip link set $iface up
-	done
-	$ip link set $dev up
+		# Add the intefaces to the bridge and bring them up
+		for iface in $interfaces ; do
+			$brctl addif $bridge $iface
+			$ip l set $iface up
+		done
 
-	# Set the default route
-	$ip route add default via $gateway dev $dev
+	done < "$bridges_list" 
 
 	echo "OK"
 }
 stop() {
 	printf "Delete the bridge $dev: "
 
-	# Delete the default route
-	$ip route del default via $gateway dev $dev
+	while read -r line ; do
+		# Ignore comments and blank lines.
+		case "$line" in
+			""|"#"*) continue ;;
+		esac
 
-	# Bring down the interfaces
-	$ip link set $dev down
-	for iface in $ifaces ; do
-		$ip link set $iface down
-	done
+		bridge=$(echo $line | awk '{print $1}')
+		interfaces=$(echo $line | awk '{for (i=2; i<=NF; i++) printf "%s ", $i; print ""}')
 
-	# Delete the configuration of the bridge
-	$ip addr del $address broadcast $broadcast dev $dev label $dev
+		# Bring down the interfaces and remove them from the bridge
+		for iface in $interfaces ; do
+			$ip l set $iface down
+			$brctl delif $bridge $iface
+		done
 
-	# Remove the interfaces from the bridge
-	for iface in $ifaces ; do
-		$brctl delif $dev $iface
-	done
+		# Delete the bridge
+		$brctl delbr $bridge
 
-	# Delete the bridge
-	$brctl delbr $dev
+	done < "$bridges_list" 
 
 	echo "OK"
 }

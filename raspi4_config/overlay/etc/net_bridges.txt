@@ -1,0 +1,5 @@
+# <Bridge name> <Interface1> <Interface2> ...
+# The configuration of the IP is done by ifupdown. Refer to the file
+# /etc/network/interfaces
+
+br0    eth0 usb0
