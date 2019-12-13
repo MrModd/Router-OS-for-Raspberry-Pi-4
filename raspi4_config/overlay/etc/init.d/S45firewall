@@ -135,11 +135,11 @@ start() {
 	
 	if [ x$EnableNat = xtrue ] ; then
 		nat # Enable the NAT
-		ports_forwarding # Set the forwarding roles
+		ports_forwarding # Set the forwarding rules
 	fi
 
 	if [ x$EnableFirewall = xtrue ] ; then
-		# Set custom roles
+		# Set custom rules
 		firewall
 	fi
 
