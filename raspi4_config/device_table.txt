@@ -10,6 +10,7 @@
 /etc/hostapd.conf				f		644		0		0		-	-	-
 /etc/issue					f		644		0		0		-	-	-
 /etc/net_bridges.txt				f		644		0		0		-	-	-
+/etc/wpa_supplicant.conf			f		644		0		0		-	-	-
 /etc/ssh/sshd_config				f		644		0		0		-	-	-
 /etc/init.d/S02modules				f		755		0		0		-	-	-
 /etc/init.d/S39bridges				f		755		0		0		-	-	-
