@@ -82,3 +82,16 @@ the package rng-tools.
 
 The solution was suggested
 [here](https://unix.stackexchange.com/questions/522271/rpi-buildroot-random-crng-init-done-not-enough-entropy-how-to-configure).
+
+## DHCP server doesn't respond to requests after the first lease
+
+If the DHCP server is not set as authoritative it won't reply to requests
+from devices which already had an IP before (and thus they are proposing
+to reobtain the same IP). This because after reboot the DHCP server
+loses the file with all the leases.
+
+Setting the server as authoritative makes it the only DHCP server in the
+network. This makes the server to reply to every DHCP request.
+
+The problem with the solution is described
+[here](https://serverfault.com/questions/842528/dnsmasq-not-responding-dhcp-requests-that-dont-follow-a-dhcp-discover).
