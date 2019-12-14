@@ -22,3 +22,5 @@
 /etc/firewall.d/config				f		755		0		0		-	-	-
 /etc/firewall.d/firewall_rules.txt		f		644		0		0		-	-	-
 /etc/firewall.d/ports_forwarding.txt		f		644		0		0		-	-	-
+/etc/sudoers.d/admin				f		600		0		0		-	-	-
+/etc/profile.d/aliases.sh			f		644		0		0		-	-	-
