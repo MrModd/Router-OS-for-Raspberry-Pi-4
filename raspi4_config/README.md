@@ -30,6 +30,62 @@ in an .img file.
 - user_table.txt: this file describes the users to be created in the
   system.
 
+# Change the network configuration
+
+The network configuration is stored in few files.
+Changing those files is sufficient to reconfigure all the interfaces and
+the network daemons.
+
+Here is the list:
+
+- /etc/dnsmasq.conf
+- /etc/hostapd.conf
+- /etc/wpa_supplicant.conf
+- /etc/net_bridges.txt
+- /etc/wlan_virtdev.txt
+- /etc/network/interfaces
+- /etc/firewall.d/config
+- /etc/firewall.d/firewall_rules.txt
+- /etc/firewall.d/ports_forwarding.txt
+
+# Troubleshooting
+
+## Can't get an IP using the USB-C port of the Raspberry
+
+I think this problem is due to the bad implementation of the USB-C standard.
+[Description here](https://www.theverge.com/2019/7/10/20688655/raspberry-pi-4-usb-c-port-bug-e-marked-cables-audio-accessory-charging).
+
+What happens is that you connect your computer via USB to the USB-C port
+of the Raspberry to power it up, the Raspberry boots, the computer shows
+a new network interface, but there's no way to exchange an ethernet
+packet between the two.
+
+You can even set a static ip on the computer, it won't send even a single
+ping. And this is because the Raspberry is not receiving any Ethernet
+frame. You can verify this by running `sudo tcpdump -i usb0` from the
+Raspberry (connect via another network interface or using the UART port).
+
+The only solution I found for now is to unplug and replug the power
+cable until it starts working. Try also changing cable or changing
+USB port on the computer.
+
+## Slow DHCP exchange on wlan0 makes ifdown and ifup unusable
+
+When starting the wlan0 in managed mode (Raspberry connecting to an
+Access Point), if the Raspberry doesn't get an IP from the DCHP server
+before the timeout it fails the ifup process for the interface.
+This results in wlan0 link down, but wpa_supplicant daemon up.
+
+Normally wpa_supplicant is stopped by `ifdown wlan0`, but since the
+link is already down this command doesn't work.
+
+The solution is to kill manually wpa_supplicant with
+`sudo killall wpa_supplicant`.
+
+In case this problem persists try increasing the timeout of the DHCP
+client. It's the line `udhcpc_opts -t 6` in the file
+*/etc/network/interfaces*.
+
 # How I solved the problems
 
 ## Internal WiFi driver
@@ -95,3 +151,15 @@ network. This makes the server to reply to every DHCP request.
 
 The problem with the solution is described
 [here](https://serverfault.com/questions/842528/dnsmasq-not-responding-dhcp-requests-that-dont-follow-a-dhcp-discover).
+
+## Udhcpc negotiation too short
+
+Depending on the kind of network you are trying to connect it may be possible
+that the 3 default retries of udhcpc to get an IP from the DHCP are not
+sufficient. The connection to the network may be slower than the retries
+of the DHCP client.
+
+The solution is to increase the number of retries done by udhcpc by setting
+the option in the file /etc/network/interfaces.
+
+This was suggested [here](https://gitlab.alpinelinux.org/alpine/aports/issues/3105).
