@@ -1,0 +1,4 @@
+# <Physical device> <Virtual device> <Type>
+
+# Example
+#phy0    ap0    __ap

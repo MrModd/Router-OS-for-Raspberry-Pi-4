@@ -1,0 +1,87 @@
+#!/bin/sh
+
+##########################################################################
+#                                                                        #
+#                 *************************************                  #
+#                 * Copyright 2019 Federico Cosentino *                  #
+#                 *************************************                  #
+#                                                                        #
+# This program is free software: you can redistribute it and/or modify   #
+# it under the terms of the GNU General Public License as published by   #
+# the Free Software Foundation, either version 3 of the License, or      #
+# (at your option) any later version.                                    #
+#                                                                        #
+# This program is distributed in the hope that it will be useful,        #
+# but WITHOUT ANY WARRANTY; without even the implied warranty of         #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the          #
+# GNU General Public License for more details.                           #
+#                                                                        #
+# You should have received a copy of the GNU General Public License      #
+# along with this program.  If not, see <https://www.gnu.org/licenses/>. #
+#                                                                        #
+##########################################################################
+
+iw="/usr/sbin/iw"
+dev_list="/etc/wlan_virtdev.txt"
+
+# If config is not present exit immediately
+[ -f "$dev_list" ] || exit 0
+
+start() {
+	printf "Create virtual devices: "
+
+	while read -r line ; do
+		# Ignore comments and blank lines.
+		case "$line" in
+			""|"#"*) continue ;;
+		esac
+
+		phy=$(echo $line | awk '{print $1}')
+		dev=$(echo $line | awk '{print $2}')
+		mode=$(echo $line | awk '{print $3}')
+
+		$iw phy $phy interface add $dev type $mode
+
+	done < "$dev_list"
+
+
+	echo "OK"
+}
+stop() {
+	printf "Delete virtual devices: "
+
+	while read -r line ; do
+		# Ignore comments and blank lines.
+		case "$line" in
+			""|"#"*) continue ;;
+		esac
+
+		dev=$(echo $line | awk '{print $2}')
+
+		$iw dev $dev del
+
+	done < "$dev_list"
+
+	echo "OK"
+}
+restart() {
+	stop
+	start
+}
+
+case "$1" in
+	start)
+		start
+		;;
+	stop)
+		stop
+		;;
+	restart|reload)
+		restart
+		;;
+	*)
+		echo "Usage: $0 {start|stop|restart}"
+		exit 1
+esac
+
+exit $?
