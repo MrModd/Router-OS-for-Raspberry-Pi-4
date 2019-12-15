@@ -133,7 +133,7 @@ invoke the `make help` target of Buildroot.
 
 There are three main folders:
 
-- *raspi4_config/*: contains the configuration file, the files
+- *raspi4_config/*: contains the configuration files, the files
   that are copied in the final image of the OS filesystem and
   some helper scripts needed for the build and which are not
   already provided by Buildroot;
