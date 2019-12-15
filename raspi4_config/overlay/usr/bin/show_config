@@ -1,0 +1,38 @@
+#!/bin/sh
+
+conf_files="\
+	/etc/dnsmasq.conf \
+	/etc/hostapd.conf \
+	/etc/wpa_supplicant.conf \
+	/etc/net_bridges.txt \
+	/etc/wlan_virtdev.txt \
+	/etc/network/interfaces \
+	/etc/firewall.d/config \
+	/etc/firewall.d/firewall_rules.txt \
+	/etc/firewall.d/ports_forwarding.txt"
+
+echo_bold() {
+	echo -e "\033[1m$1\033[0m"
+}
+
+for file in $conf_files ; do
+	echo_bold "Content of file \"$file\":"
+
+	num_lines=0
+	if [ -f "$file" ] ; then
+		while IFS= read -r line ; do
+			# Ignore comments and blank lines.
+			case "$line" in
+				""|"#"*) continue ;;
+			esac
+
+			echo "$line"
+			num_lines=$((num_lines+1))
+
+		done < "$file"
+	fi
+
+	[ $num_lines = 0 ] && echo "~~~ Missing or empty file ~~~"
+done
+
+exit 0
