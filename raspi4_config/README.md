@@ -191,18 +191,18 @@ This Linux distribution comes with a Web UI that displays info about
 the Raspberry itself.
 
 The monitoring platform is made of 3 components. The time series
-database ((InfluxDB)[https://www.influxdata.com/products/influxdb-overview/])
+database ([InfluxDB](https://www.influxdata.com/products/influxdb-overview/))
 which stores the metrics, the metrics collector
-((Telegraf)[https://www.influxdata.com/time-series-platform/telegraf/])
+([Telegraf](https://www.influxdata.com/time-series-platform/telegraf/))
 which periodically gets the value from the system and pushes them in the DB,
-and finally the Web UI ((Grafana)[https://grafana.com/grafana/]).
+and finally the Web UI ([Grafana](https://grafana.com/grafana/)).
 
 Grafana is a powerful tool you can use to display data coming from a
 various number of different sources.
 Anyone can prepare a dashboard and share it on the official portal
-(link here)[https://grafana.com/grafana/dashboards]). For this project
+[link here](https://grafana.com/grafana/dashboards)). For this project
 the best choice was the
-(Raspberry Pi Monitoring)[https://grafana.com/grafana/dashboards/10578].
+[Raspberry Pi Monitoring](https://grafana.com/grafana/dashboards/10578).
 With some small modifications on what Telegraf has to collect from the
 system this premade dashboard shows all the needful information for
 the monitoring of the Raspberry.
