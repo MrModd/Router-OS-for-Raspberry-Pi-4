@@ -1,2 +1,8 @@
 # <username> <uid> <group> <gid> <password> <home> <shell> <groups> <comment>
+
+# Syntax explanation: https://buildroot.org/downloads/manual/manual.html#makeuser-syntax
+
 admin 1000 admin 1000 =admin /home/admin/ /bin/sh sudo I don't know what to write here
+influxdb 1001 influxdb 1001 - - - - User for InfluxDB server
+telegraf 1002 telegraf 1002 - - - - User for Telegraf scraper
+grafana 1003 grafana 1003 - - - - User for Grafana server

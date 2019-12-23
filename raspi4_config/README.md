@@ -185,6 +185,34 @@ Protocol is either `tcp` or `udp`, external port is the port to open
 on the world facing interface which is then translated into the
 internal port number and forwarded to the internal IP host.
 
+# Web dashboard for internal monitoring
+
+This Linux distribution comes with a Web UI that displays info about
+the Raspberry itself.
+
+The monitoring platform is made of 3 components. The time series
+database ((InfluxDB)[https://www.influxdata.com/products/influxdb-overview/])
+which stores the metrics, the metrics collector
+((Telegraf)[https://www.influxdata.com/time-series-platform/telegraf/])
+which periodically gets the value from the system and pushes them in the DB,
+and finally the Web UI ((Grafana)[https://grafana.com/grafana/]).
+
+Grafana is a powerful tool you can use to display data coming from a
+various number of different sources.
+Anyone can prepare a dashboard and share it on the official portal
+(link here)[https://grafana.com/grafana/dashboards]). For this project
+the best choice was the
+(Raspberry Pi Monitoring)[https://grafana.com/grafana/dashboards/10578].
+With some small modifications on what Telegraf has to collect from the
+system this premade dashboard shows all the needful information for
+the monitoring of the Raspberry.
+
+You can access the dashboard by connecting to the IP of the Raspberry
+and port 3000. So default is: <http://192.168.1.1:3000/>.
+
+Use "admin" as user and password. You'll be prompt to change it at the
+first access.
+
 # Troubleshooting
 
 ## Can't get an IP using the USB-C port of the Raspberry
@@ -222,6 +250,18 @@ The solution is to kill manually wpa_supplicant with
 In case this problem persists try increasing the timeout of the DHCP
 client. It's the line `udhcpc_opts -t 6` in the file
 */etc/network/interfaces*.
+
+## Grafana displays "Data outside time range"
+
+When the Raspberry is not connected to the internet (as per default
+configuration) the internal time starts from the EPOCH time 0:
+Jan 1st 1970. Grafana, instead, takes the date from the device where
+you open it from, so the dates don't match. Moreover the EPOCH time 0
+is threated by InfluxDB as a null date.
+
+In order to have the correct statistics on Grafana ensure the Raspberry
+is connected to the internet. The *ntpd* daemon will take care of
+getting the right date.
 
 # How I solved the problems
 
