@@ -123,7 +123,7 @@ datasources:
       httpMode: GET
 __EOF__
 
-cat << __EOF__ > "$TARGET_DIR/usr/share/grafana/conf/provisioning/dashboards/raspberry.yml"
+cat << __EOF__ > "$TARGET_DIR/usr/share/grafana/conf/provisioning/dashboards/raspberry.yaml"
 apiVersion: 1
 
 providers:

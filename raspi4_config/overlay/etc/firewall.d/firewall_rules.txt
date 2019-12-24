@@ -21,3 +21,9 @@
 
 # SMB server
 #tcp internal 445
+
+# Grafana
+#tcp internal 3000
+
+# InfluxDB
+#tcp internal 8086
