@@ -201,7 +201,7 @@ OPTIONS:
 	-y      Load and save config files without asking
 
 TARGET:
-	Refer to Buildroot documentation to see the make receipes.
+	Refer to Buildroot documentation to see the make recipes.
 EOF
 }
 
