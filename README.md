@@ -1,154 +1,42 @@
-# Buildroot OS for Raspberry Pi 4
+# Router OS for Raspberry Pi 4
 
-This repository aims to build a Linux based operating system
-from scratch using Buildroot.
+Router OS is a Linux distribution for Raspberry Pi 4.
+It is a custom build assembled using [Buildroot](https://buildroot.org/).
 
-Main features of this OS are:
+The purpose of this operating system is to provide a lightweight and
+minimalistic Linux distribution to make the Raspberry into a network router.
+
+There are three main key point behind this project:
 
 - Provide a **read only root filesystem** with a RW overlay
   which makes the board safe to unplug in any moment
 - Provide a **default configuration** which allows to connect
   to the board via a WiFi network to make further changes (all headless)
 - Provide a **configuration tool** to setup the board as a
-  router between two wireless networks or a wireless network and a wired one.
+  router between two wireless networks or a wireless network and a
+  wired one.
 
-## Rationale
+## Getting Started
 
-Boards like the Raspberry Pi or the ODROID are becoming more and
-more popular thanks to their computational power.
-Nowadays they are powerful enough to satisfy the needs of most of
-the users. It's very straightforward to download and install a
-GNU/Linux distribution and to start using the system for browsing
-or video playback.
+To get ready you only need to build the filesystem image which will go
+to the MicroSD card for the Raspberry Pi.
 
-*Straightforward means boring...*
+### Prerequisites
 
-I've always been fascinated by the operating systems of network
-devices such as routers.
-Their sturdy filesystem let you unplug the power at any time
-without any damage. If for some reason the configuration gets
-corrupted you can simply reset the device to restore the
-*factory parameters* and you are again good to go.
+The only requirements are to be able to run Buildroot.
+For this I invite you have a look at the
+[Buildroot requirements](https://buildroot.org/downloads/manual/manual.html#requirement)
+section of the documentation.
 
-**How to achieve this?**
+### Building the image
 
-In one word: *overlaying*
+To build the filesystem image run the script `compile_buildroot.sh` with
+no arguments.
+Follow the output of the script and answer to the questions if
+needed (always press Enter when in doubt ;P).
 
-The root filesystem is made of the union of two or more filesystems
-(or more in general folders). We will call those filesystem **layers**.
-One layer is made **read only** and it contains a basic linux installation.
-A full root scheleton with all the binaries, config files and libraries.
-This by itself works and makes the device boot.
-All the customization are stored in another **read write** layer.
-This second layer can be in memory (meaning all the changes are lost
-after every power cycle) or on a different block device. The drawback
-of this second choice is that it can get corrupted if you unplug the
-power while the system is writing here. In this case you can always
-wipe the second layer to go back to the default configuration.
+The compilation will take some time. Probably more than 30 mins.
 
-## Project description
-
-The idea of this project is to play with the overlay filesystem
-applying it on a real use case.
-The goal is to transform the Raspberry Pi 4 in a router with the
-following features:
-
-- Isolation between two distinct networks with a NAT and a firewall
-- Ability to easily configure the topology (e.g. NAT or bridge)
-- A basic configuration that let users easily access to the system
-  to perform the initial configuration
-
-The basic configuration is done by setting the integrated wireless
-network interface of the Raspberry Pi 4 as a hosted mode so that
-other devices can connect to it.
-Once connected a user can ssh to the Raspberry to launch the
-config tool and set up the desired configuration.
-
-Note that at least two network devices are required. They can be
-either the integrated WiFi and Ethernet or another USB device.
-
-This project doesn't start from a premade GNU/Linux distribution,
-but rather it uses **Buildroot** to assemble an entire custom
-operating system by picking up by hand EVERYTHING. Starting from
-the toolchain for the cross compilation to the way to assemble
-the root filesystem scheleton.
-
-## Milestones
-
-This project is developed with some milestone in mind.
-
-1. Basic GNU/Linux OS made starting from the default configuration
-   of Buildroot
-2. GNU/Linux OS with the basic routing configuration (DHCP, Wireless
-   access point)
-3. Same image as previous step, but with tools to customize the
-   configuration at runtime
-4. Filesystem overlaying to make the changes appear only on the
-   upper overlay RW filesystem
-5. (Optional) basic driver for external GPIO interface to perform
-   some basic operations such as reboot, factory reset, Wireless
-   ON/OFF
-
-## How to use
-
-Buildroot is a fantastic tool all centered on the use of make.
-It automates the fetch of all the packages, it downloads as well
-the Linux kernel and the toolchain for the cross compilation.
-You can learn more about Buildroot by checking the official
-website. [Link here](https://buildroot.org/).
-
-The script **"compile_buildroot.sh"** is a wrapper on top of Buildroot.
-The feature it has are the following:
-
-- It clones and updates the buildroot repository if not present
-- It keeps automatically the configuration folder and the build
-  folder separated
-- It calls Buildroot with all the required variables (such as
-  the one which specifies where the build folder is)
-- It manages the load and save of the configuration file
-
-About this last point the reason is that the configuration
-file used by Buildroot is the file ".defconfig" that must be
-present in the base directory of Buildroot itself (as it happens
-for the Linux kernel source code).
-The script "compile_buildroot.sh" takes care of saving
-the current configuration of Buildroot in the external
-folder and of loading inside the Buildroot folder the
-previously saved configuration.
-
-### Usage of "compile_buildroot.sh"
-
-To compile everything simply call the script: `./compile_buildroot.sh`.
-If it is the first time you run it it will download Buildroot as well.
-At the question "Load the buildroot config file? [Y|n]" say yes
-otherwise it will fail because there isn't a default configuration
-on a freshly downloaded copy of Buildroot.
-
-With -h you can check the arguments you can give to the script.
-If you want to know the arguments you can give to Buildroot
-call the script with `./compile_buildroot.sh help`. This will
-invoke the `make help` target of Buildroot.
-
-### Folder structure
-
-There are three main folders:
-
-- *raspi4_config/*: contains the configuration files, the files
-  that are copied in the final image of the OS filesystem and
-  some helper scripts needed for the build and which are not
-  already provided by Buildroot;
-- *raspi4_build/*: is the build directory where Buildroot compiles
-  the packages and save the final image of the OS filesystem;
-- *buildroot/*: is the git repository of Buildroot.
-
-### Getting started
-
-This section should be on the top, isn't it?
-
-First build the image with `./compile_buildroot.sh`.
-Follow the output of the script and answer to the question if
-needed.
-The compilation will take some time. Probably more than 15 mins.
 If everythig goes well you'll find the output of the compilation
 in the folder *raspi4_build/images/*.
 The file *boot.vfat* is the dump of the first vfat partition and
@@ -156,11 +44,88 @@ the file *rootfs.ext2* is the dump of the second ext4 partition.
 There's also the file *sdcard.img* which is the dump of the entire
 SD card.
 
-The easiest way to get it is to copy the content of sdcard.img
-directly into the block device of the microSD.
-An example is this:
+### Installing
 
-`dd if=raspi4_build/images/sdcard.img of=/dev/sdd bs=2M`
+The easiest way to get the OS into a microSD card is to copy the content
+of *sdcard.img* directly into the block device of the memory card.
+For example (to run as root user or using sudo):
 
-To run as root (or with sudo).
-In this case the SD card is mapped to the /dev/sdd device.
+`dd if=./raspi4_build/images/sdcard.img of=/dev/sdX bs=2M`
+
+**/!\ This command will erase all the content of the device!**
+
+Run it only when you are confident on what you are doing.
+
+In the example *sdX* is the device which represent your SD card.
+You can discover the right letter by checking the output of the
+command `lsblk`.
+
+### Connecting to the system
+
+Once the image is on the SD card instert it in the Raspberry and power
+it on. You can then connect to it using one of the many intefaces
+available:
+
+- **WiFi**: the default image turns the internal WiFi network card into
+  an Access Point. The name of the network is **Routerberry**. There's
+  no security, you can connect without password (or any other kind of
+  authentication).
+- **Ethernet**: connect an Ethernet cable to the Eth port of the Raspberry
+  and you'll get an IP from the DHCP server.
+- **USB-C to Eth**: power the Raspberry using an USB-C data cable and plug
+  it into your computer and you'll see a new network device. Enable it
+  and you'll automatically get an IP from the DHCP server.
+- **UART** (more advanced): connect a Serial-to-USB adapter to your
+  computer and connect the pins GND, TXD and RXD to the pins 6, 8 and 10
+  (respectively) of the 40 pins expansion header of the Raspberry (more
+  info [here](https://www.raspberrypi.org/documentation/usage/gpio/)).
+  Then use the tool you prefer to communicate with the serial port (for
+  example `minicom`).
+
+Default login is:
+
+- user: `admin`
+- password: `admin`
+
+You can use `sudo` to perform root operations.
+
+### Documentation
+
+All the documentation is in the [docs](docs/README.md) folder.
+
+## Built With
+
+* [Buildroot](https://buildroot.org/) - The tool used to create the
+  embedded Linux system
+
+## Versioning
+
+The stable releases are published in the **master** branch of this
+repository. All the experimental features are in the **develop** branch.
+
+The milestones are marked with a **tag**.
+
+## Authors
+
+* **Federico Cosentino** - [MrModd](https://bitbucket.org/MrModd/)
+
+## License
+
+This program is free software: you can redistribute it and/or modify
+it under the terms of the GNU General Public License as published by
+the Free Software Foundation, either version 3 of the License, or
+(at your option) any later version.
+
+This program is distributed in the hope that it will be useful,
+but WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+GNU General Public License for more details.
+
+See the [COPYING](COPYING) file for details
+or go to <https://www.gnu.org/licenses/>.
+
+## Acknowledgments
+
+I copied some of the scripts or parts of them from other Open Source
+projects. If I'm not the author of the code you will find information
+on the detentor of the rights in the first section of the files.
