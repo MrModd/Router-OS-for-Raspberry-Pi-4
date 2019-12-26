@@ -1,5 +1,10 @@
 # OS Reference
 
+![Raspberry Pi 4](images/raspberry_pi_4.png)
+
+In this section of the documentation you can find the operational manual
+of the operating system.
+
 ## Table of content
 
 * [General documentation](general.md)

@@ -1,5 +1,7 @@
 # Router OS for Raspberry Pi 4
 
+![Buildroot](docs/images/buildroot_logo.png)![Raspberry Pi 4 B+](docs/images/raspberry_logo.png)
+
 Router OS is a Linux distribution for Raspberry Pi 4.
 It is a custom build assembled using [Buildroot](https://buildroot.org/).
 
@@ -18,8 +20,8 @@ There are three main key point behind this project:
 
 ## Getting Started
 
-To get ready you only need to build the filesystem image which will go
-to the MicroSD card for the Raspberry Pi.
+To get ready all you need to do is to build the filesystem image which
+will go to the MicroSD card for the Raspberry Pi.
 
 ### Prerequisites
 
