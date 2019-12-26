@@ -9,7 +9,7 @@ outside Buildroot.
 
 This page explain how to use it.
 
-## Build the toolchain
+## Building the toolchain
 
 If you already compiled the OS you will already have the toolchain. It is
 under the folder *raspi4_build/host/usr/bin/* and it is prefixed with
