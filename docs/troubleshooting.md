@@ -70,6 +70,58 @@ waits for 1 second before checking the status. Don't worry about
 this error message. If you want to be sure InfluxDB started just wait
 at least 20 seconds and then run `sudo /etc/init.d/S90influxdb status`.
 
+## Can't connect to Wireless and getting kernel modules WARNING
+
+If you see kernel logs like the one below it's probably that you are
+trying to use the wireless card as AP and client at the same time, but
+the channel of the two networks don't match.
+
+```
+[  159.362960] brcmfmac: brcmf_update_bss_info: wl dtim_assoc failed (-52)
+[  159.369682] ------------[ cut here ]------------
+[  159.374484] WARNING: CPU: 1 PID: 57 at net/wireless/sme.c:752 __cfg80211_connect_result+0x3a4/0x408 [cfg80211]
+[  159.384526] Modules linked in: iptable_nat ipt_MASQUERADE nf_nat_ipv4 nf_nat nf_conntrack nf_defrag_ipv6 nf_defrag_ipv4 bridge stp llc ipv6 usb_f_ecm g_ether usb_f_rndis u_ether libcomposite dwcl
+[  159.411696] CPU: 1 PID: 57 Comm: kworker/u8:1 Tainted: G        W         4.19.66-v7l #1
+[  159.419807] Hardware name: BCM2835
+[  159.423331] Workqueue: cfg80211 cfg80211_event_work [cfg80211]
+[  159.429204] [<c0212c70>] (unwind_backtrace) from [<c020d2c8>] (show_stack+0x20/0x24)
+[  159.436972] [<c020d2c8>] (show_stack) from [<c0981858>] (dump_stack+0xcc/0x110)
+[  159.444305] [<c0981858>] (dump_stack) from [<c0222280>] (__warn.part.3+0xcc/0xe8)
+[  159.451810] [<c0222280>] (__warn.part.3) from [<c022241c>] (warn_slowpath_null+0x54/0x5c)
+[  159.460123] [<c022241c>] (warn_slowpath_null) from [<bf043510>] (__cfg80211_connect_result+0x3a4/0x408 [cfg80211])
+[  159.470716] [<bf043510>] (__cfg80211_connect_result [cfg80211]) from [<bf013414>] (cfg80211_process_wdev_events+0x104/0x160 [cfg80211])
+[  159.483124] [<bf013414>] (cfg80211_process_wdev_events [cfg80211]) from [<bf0134b8>] (cfg80211_process_rdev_events+0x48/0xa0 [cfg80211])
+[  159.495612] [<bf0134b8>] (cfg80211_process_rdev_events [cfg80211]) from [<bf00d2d8>] (cfg80211_event_work+0x24/0x2c [cfg80211])
+[  159.507220] [<bf00d2d8>] (cfg80211_event_work [cfg80211]) from [<c023d4b4>] (process_one_work+0x23c/0x518)
+[  159.516898] [<c023d4b4>] (process_one_work) from [<c023e578>] (worker_thread+0x60/0x5b8)
+[  159.525009] [<c023e578>] (worker_thread) from [<c0243fd4>] (kthread+0x16c/0x174)
+[  159.532424] [<c0243fd4>] (kthread) from [<c02010ac>] (ret_from_fork+0x14/0x28)
+[  159.539659] Exception stack(0xef30bfb0 to 0xef30bff8)
+[  159.544721] bfa0:                                     00000000 00000000 00000000 00000000
+[  159.552915] bfc0: 00000000 00000000 00000000 00000000 00000000 00000000 00000000 00000000
+[  159.561107] bfe0: 00000000 00000000 00000000 00000000 00000013 00000000
+[  159.567783] ---[ end trace 47050e3fb3cab0dc ]---
+```
+
+You are limited in the kind of combinations you can do with one card.
+To get a list of allowed combination call `iw list`. For the integrated
+WiFi card of the Raspberry Pi 4 B+ this is the list of combinations:
+
+```
+valid interface combinations:
+         * #{ managed } <= 1, #{ P2P-device } <= 1, #{ P2P-client, P2P-GO } <= 1,
+           total <= 3, #channels <= 2
+         * #{ managed } <= 1, #{ AP } <= 1, #{ P2P-client } <= 1, #{ P2P-device } <= 1,
+           total <= 4, #channels <= 1
+```
+
+The second combination tells you can use the card as client (managed)
+and as access point (AP) at the same time as long as the two networks
+are configured on the same wireless channel/frequency (channels <= 1).
+
+So, when configuring *hostapd.conf* be sure the channel equals the one
+of the wireless configured in *wpa_supplicant.conf*.
+
 # How I solved the problems
 
 ## Internal WiFi driver

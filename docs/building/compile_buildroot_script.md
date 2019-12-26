@@ -12,6 +12,8 @@ tasks. In particular:
   the one which specifies where the build folder is)
 - It manages the load and save of the configuration file
 
+![Buildroot menuconfig(images/buildroot_menuconfig.png)
+
 ## Quick reference
 
 - To build the OS image:

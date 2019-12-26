@@ -4,6 +4,9 @@
 
 Boards like the Raspberry Pi or the ODROID are becoming more and
 more popular thanks to their computational power.
+
+![Raspberry Pi 4 B+](images/raspberry_pi_4.png)
+
 Nowadays they are powerful enough to satisfy the needs of most of
 the users. It's very straightforward to download and install a
 GNU/Linux distribution and to start using the system for browsing

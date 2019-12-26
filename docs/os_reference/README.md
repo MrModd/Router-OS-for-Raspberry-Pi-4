@@ -1,6 +1,6 @@
 # OS Reference
 
-![Raspberry Pi 4](images/raspberry_pi_4.png)
+![Raspberry Pi 4](images/raspberry_logo.png)
 
 In this section of the documentation you can find the operational manual
 of the operating system.

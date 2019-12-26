@@ -1,6 +1,6 @@
 # Router OS for Raspberry Pi 4
 
-![Router OS](docs/images/intro_logo.png)
+![Router OS](docs/images/router_os.png)
 
 Router OS is a Linux distribution for Raspberry Pi 4.
 It is a custom build assembled using [Buildroot](https://buildroot.org/).

@@ -1,6 +1,6 @@
 # Building the OS image
 
-![Buildroot](images/buildroot.png)
+![Buildroot Logo](images/buildroot_logo.png)
 
 Buildroot is a fantastic tool all centered on the use of make.
 It automates the fetch of all the packages, it downloads as well
